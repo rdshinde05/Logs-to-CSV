@@ -1,0 +1,24 @@
+#!/bin/bash
+# v0.1
+input="output.txt"
+while IFS= read -r line
+do
+  if [[ ${line} != "" ]]; then
+    if [[ "${line:0:27}" == "destination               :" ]]; then
+      # this is the first line of a new record
+      # which is also the end of the previous record, better output the current data
+      if [[ "${result}" != "" ]]; then
+        echo "${result}"
+      fi
+      result=`echo -n "${line}" | awk -F " : " '{printf $2}'`
+    else
+      if [[ "${line:26:1}" == ":" ]]; then
+        # it's a field line and not a continuation
+        result="${result},`echo -n "${line}" | tr ',' ' ' | awk -F " : " '{printf $2}'`"
+      else
+        result=${result}`echo -n "${line}" | tr ',' ' '`
+      fi
+    fi
+  fi
+done < "$input"
+echo "${result}"
